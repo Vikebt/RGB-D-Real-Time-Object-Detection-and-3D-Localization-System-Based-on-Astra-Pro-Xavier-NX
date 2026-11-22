@@ -10,6 +10,8 @@
 
 ![YOLOv5n detection on Xavier NX](docs/images/detection_annotated.png)
 
+*演示图片中的人脸已做模糊处理。*
+
 > 当前定位：**可运行、可回放、可测试的工程原型（MVP）**。
 > 彩色相机标定与 10 分钟稳定性已完成；0.8–2.0m 卷尺精度实测和 RViz 现场截图仍需现场配合。
 > 详见 [docs/test_report.md](docs/test_report.md)。
@@ -29,7 +31,7 @@
 | 可视化 | RViz 图像、点云、TF、Objects3D Marker |
 | 离线回放 | rosbag 录制/播放，无相机可复现 |
 | 标定 | 9×6 / 25mm 棋盘格，自动采集 + `cv2.calibrateCamera` |
-| 工程化 | systemd 可托管、benchmark/stability 脚本、Doxygen 注释 |
+| 工程化 | benchmark/stability 脚本、录制/回放、Doxygen 注释 |
 
 ### 实测指标（Xavier NX 20W / 办公室场景）
 
