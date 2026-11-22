@@ -1,0 +1,15 @@
+<launch>
+  <arg name="engine_path"
+       default="$(find astra_rgbd_perception)/../../models/yolov5n_fp16.engine"/>
+  <arg name="use_rviz" default="false"/>
+
+  <node pkg="astra_rgbd_perception" type="detector_node" name="detector"
+        output="screen">
+    <rosparam command="load"
+              file="$(find astra_rgbd_perception)/config/detector.yaml"/>
+    <param name="engine_path" value="$(arg engine_path)"/>
+  </node>
+
+  <node if="$(arg use_rviz)" pkg="rviz" type="rviz" name="detector_rviz"
+        args="-d $(find astra_rgbd_perception)/config/rgbd_view.rviz"/>
+</launch>

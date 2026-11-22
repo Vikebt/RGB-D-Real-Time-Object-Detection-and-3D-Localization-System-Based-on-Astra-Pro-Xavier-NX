@@ -1,0 +1,15 @@
+color_topic: /camera/color/image_raw
+detections_topic: /perception/detections_2d
+annotated_topic: /perception/image_annotated
+
+input_size: 640
+conf_threshold: 0.25
+iou_threshold: 0.45
+max_detections: 100
+publish_annotated: true
+
+# Set true only when diagnosing engine output values.
+debug_output: false
+
+# Empty means <package>/config/coco.names.
+class_names_file: ""

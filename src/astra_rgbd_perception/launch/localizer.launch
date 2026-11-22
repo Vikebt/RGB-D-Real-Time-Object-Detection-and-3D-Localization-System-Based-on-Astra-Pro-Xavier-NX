@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="astra_rgbd_perception" type="depth_localizer_node"
+        name="depth_localizer" output="screen">
+    <rosparam command="load"
+              file="$(find astra_rgbd_perception)/config/localizer.yaml"/>
+  </node>
+</launch>

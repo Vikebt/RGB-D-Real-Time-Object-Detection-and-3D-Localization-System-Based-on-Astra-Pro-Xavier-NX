@@ -1,0 +1,41 @@
+# RGB-D synchronization / point cloud parameters.
+
+color_topic: /camera/color/image_raw
+depth_topic: /camera/depth/image_raw
+color_info_topic: /camera/color/camera_info
+depth_info_topic: /camera/depth/camera_info
+
+points_xyz_topic: /perception/points_xyz
+points_xyzrgb_topic: /perception/points_xyzrgb
+stats_topic: /perception/sync_stats
+
+# Sample every Nth row/column. step=2 reduces a 640x480 cloud from ~307k to
+# ~76k points without a visible difference in RViz.
+step: 2
+queue_size: 5
+approx_slop_s: 0.05
+min_range_m: 0.3
+max_range_m: 8.0
+
+# Astra Pro depth is 16UC1 in millimeters.
+depth_scale_to_m: 0.001
+
+# Limit point cloud publishing to 10 Hz; the images still synchronize at 30 Hz.
+cloud_rate_hz: 10.0
+gap_threshold_ms: 75.0
+
+publish_xyz: true
+publish_xyzrgb: true
+
+# The depth stream must be registered to color (astra_camera depth_align:=true)
+# before RGB-D pixel correspondence is valid.
+require_aligned: true
+
+# The color camera is calibrated (2026-11-22); the driver loads
+# ~/.ros/camera_info/rgb_camera.yaml and publishes a valid K. Keep fallback
+# disabled for final acceptance so invalid CameraInfo is visible, not hidden.
+fallback_intrinsics: false
+fallback_fx: 570.3422
+fallback_fy: 570.3422
+fallback_cx: 319.5
+fallback_cy: 239.5

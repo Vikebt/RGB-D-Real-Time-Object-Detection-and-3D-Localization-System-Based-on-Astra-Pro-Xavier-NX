@@ -1,0 +1,51 @@
+diff --git a/src/ob_camera_info.cpp b/src/ob_camera_info.cpp
+index 2abe176..d1a61fe 100644
+--- a/src/ob_camera_info.cpp
++++ b/src/ob_camera_info.cpp
+@@ -321,6 +321,14 @@ sensor_msgs::CameraInfo OBCameraNode::getIRCameraInfo(int width, int height, dou
+ }
+ 
+ sensor_msgs::CameraInfo OBCameraNode::getDepthCameraInfo() {
++  // When the depth stream is registered to the color camera, the depth image is
++  // expressed in the color optical frame and must use the color intrinsics.
++  if (depth_align_) {
++    auto color_info = getColorCameraInfo();
++    color_info.width = width_[COLOR];
++    color_info.height = height_[COLOR];
++    return color_info;
++  }
+   // The depth image has essentially the same intrinsics as the IR image, BUT the
+   // principal point is offset by half the size of the hardware correlation window
+   // (probably 9x9 or 9x7 in 640x480 mode). See
+diff --git a/src/ob_camera_node.cpp b/src/ob_camera_node.cpp
+index 2419923..ffcdaec 100644
+--- a/src/ob_camera_node.cpp
++++ b/src/ob_camera_node.cpp
+@@ -130,7 +130,8 @@ void OBCameraNode::init() {
+     }
+ 
+     camera_info.header.stamp = ros::Time::now();
+-    camera_info.header.frame_id = optical_frame_id_[stream_index];
++    camera_info.header.frame_id =
++        depth_align_ ? depth_aligned_frame_id_[stream_index] : optical_frame_id_[stream_index];
+     camera_info_publishers_.at(stream_index).publish(camera_info);
+   }
+   ROS_INFO_STREAM("OBCameraNode initialized");
+@@ -169,7 +170,7 @@ void OBCameraNode::setupConfig() {
+ void OBCameraNode::setupCameraInfoManager() {
+   ir_info_manager_ = std::make_unique<camera_info_manager::CameraInfoManager>(
+       nh_private_, "ir_camera", ir_info_uri_);
+-  if (!use_uvc_camera_ && device_->hasSensor(openni::SENSOR_COLOR)) {
++  if (use_uvc_camera_ || device_->hasSensor(openni::SENSOR_COLOR)) {
+     color_info_manager_ = std::make_unique<camera_info_manager::CameraInfoManager>(
+         nh_, "rgb_camera", color_info_uri_);
+   }
+@@ -795,6 +796,8 @@ void OBCameraNode::onNewFrameCallback(const openni::VideoFrameRef &frame,
+   }
+ 
+   camera_info.header.stamp = timestamp;
++  camera_info.header.frame_id =
++      depth_align_ ? depth_aligned_frame_id_[stream_index] : optical_frame_id_[stream_index];
+   camera_info_publishers_.at(stream_index).publish(camera_info);
+ 
+   if (save_images_[stream_index]) {

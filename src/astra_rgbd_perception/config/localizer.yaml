@@ -1,0 +1,29 @@
+detections_topic: /perception/detections_2d
+depth_topic: /camera/depth/image_raw
+depth_info_topic: /camera/depth/camera_info
+color_info_topic: /camera/color/camera_info
+objects_topic: /perception/objects_3d
+markers_topic: /perception/markers
+
+# Astra Pro depth is 16UC1 in millimeters.
+depth_scale_to_m: 0.001
+min_range_m: 0.3
+max_range_m: 8.0
+
+# Use the central 50% of each detection box for depth extraction.
+roi_ratio: 0.5
+min_valid_pixels: 10
+min_valid_ratio: 0.05
+
+require_aligned: true
+approx_slop_s: 0.05
+marker_lifetime_s: 0.5
+
+# The color camera is calibrated (2026-11-22); K comes from
+# ~/.ros/camera_info/rgb_camera.yaml. Keep fallback disabled for final
+# acceptance so invalid CameraInfo is visible, not hidden.
+fallback_intrinsics: false
+fallback_fx: 570.3422
+fallback_fy: 570.3422
+fallback_cx: 319.5
+fallback_cy: 239.5

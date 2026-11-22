@@ -1,0 +1,123 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+  - Class: rviz/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Grid
+      Enabled: true
+      Name: Grid
+      Alpha: 0.5
+      Cell Size: 0.5
+      Plane Cell Count: 20
+      Color: 160; 160; 164
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+    - Class: rviz/TF
+      Enabled: true
+      Name: TF
+      Marker Scale: 0.5
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Update Interval: 0
+    - Class: rviz/Image
+      Enabled: true
+      Name: Color
+      Image Topic: /camera/color/image_raw
+      Transport Hint: raw
+      Queue Size: 2
+      Max Rate: 15
+    - Class: rviz/Image
+      Enabled: true
+      Name: Depth
+      Image Topic: /camera/depth/image_raw
+      Transport Hint: raw
+      Queue Size: 2
+      Max Rate: 15
+    - Class: rviz/Image
+      Enabled: true
+      Name: Detections
+      Image Topic: /perception/image_annotated
+      Transport Hint: raw
+      Queue Size: 2
+      Max Rate: 15
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Name: Objects3D
+      Marker Topic: /perception/markers
+      Namespaces: {}
+      Queue Size: 100
+    - Class: rviz/PointCloud2
+      Enabled: true
+      Name: XYZRGB
+      Topic: /perception/points_xyzrgb
+      Style: Flat Squares
+      Size (m): 0.01
+      Size (Pixels): 3
+      Color Transformer: RGB8
+      Position Transformer: XYZ
+      Queue Size: 3
+      Decay Time: 0
+      Alpha: 1
+      Selectable: true
+      Use Fixed Frame: true
+    - Class: rviz/PointCloud2
+      Enabled: false
+      Name: XYZ
+      Topic: /perception/points_xyz
+      Style: Flat Squares
+      Size (m): 0.01
+      Size (Pixels): 3
+      Color Transformer: AxisColor
+      Position Transformer: XYZ
+      Queue Size: 3
+      Decay Time: 0
+      Alpha: 1
+      Selectable: true
+      Use Fixed Frame: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Default Light: true
+    Fixed Frame: camera_color_optical_frame
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 2.5
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 1
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.01
+      Pitch: 0.6
+      Target Frame: <Fixed Frame>
+      Yaw: 0.6
+    Saved: ~
+Window Geometry:
+  Height: 1080
+  Width: 1920
+  X: 0
+  Y: 0

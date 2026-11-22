@@ -1,0 +1,57 @@
+<launch>
+  <arg name="camera_name" default="camera"/>
+  <arg name="start_camera" default="true"/>
+  <arg name="depth_align" default="true"/>
+  <arg name="use_rviz" default="true"/>
+  <arg name="use_sync" default="true"/>
+  <arg name="use_detector" default="true"/>
+  <arg name="use_localizer" default="true"/>
+
+  <arg name="color_width" default="640"/>
+  <arg name="color_height" default="480"/>
+  <arg name="color_fps" default="30"/>
+  <arg name="depth_width" default="640"/>
+  <arg name="depth_height" default="480"/>
+  <arg name="depth_fps" default="30"/>
+
+  <arg name="engine_path"
+       default="$(find astra_rgbd_perception)/../../models/yolov5n_fp16.engine"/>
+
+  <!-- Camera driver: depth is registered to the color camera; the driver's
+       own point cloud is disabled because rgbd_sync_node builds it. -->
+  <include if="$(arg start_camera)" file="$(find astra_camera)/launch/astra_pro.launch">
+    <arg name="camera_name" value="$(arg camera_name)"/>
+    <arg name="depth_align" value="$(arg depth_align)"/>
+    <arg name="enable_point_cloud" value="false"/>
+    <arg name="enable_point_cloud_xyzrgb" value="false"/>
+    <arg name="enable_ir" value="false"/>
+    <arg name="color_width" value="$(arg color_width)"/>
+    <arg name="color_height" value="$(arg color_height)"/>
+    <arg name="color_fps" value="$(arg color_fps)"/>
+    <arg name="depth_width" value="$(arg depth_width)"/>
+    <arg name="depth_height" value="$(arg depth_height)"/>
+    <arg name="depth_fps" value="$(arg depth_fps)"/>
+  </include>
+
+  <node if="$(arg use_sync)" pkg="astra_rgbd_perception" type="rgbd_sync_node"
+        name="rgbd_sync" output="screen">
+    <rosparam command="load"
+              file="$(find astra_rgbd_perception)/config/rgbd_sync.yaml"/>
+  </node>
+
+  <node if="$(arg use_detector)" pkg="astra_rgbd_perception" type="detector_node"
+        name="detector" output="screen">
+    <rosparam command="load"
+              file="$(find astra_rgbd_perception)/config/detector.yaml"/>
+    <param name="engine_path" value="$(arg engine_path)"/>
+  </node>
+
+  <node if="$(arg use_localizer)" pkg="astra_rgbd_perception"
+        type="depth_localizer_node" name="depth_localizer" output="screen">
+    <rosparam command="load"
+              file="$(find astra_rgbd_perception)/config/localizer.yaml"/>
+  </node>
+
+  <node if="$(arg use_rviz)" pkg="rviz" type="rviz" name="rviz"
+        args="-d $(find astra_rgbd_perception)/config/rgbd_view.rviz"/>
+</launch>

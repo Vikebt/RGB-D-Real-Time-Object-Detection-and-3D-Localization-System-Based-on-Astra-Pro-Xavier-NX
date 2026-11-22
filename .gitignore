@@ -1,0 +1,33 @@
+# catkin build artifacts
+build/
+devel/
+install/
+
+# runtime data
+logs/
+bags/
+/calibration/
+*.bag
+*.log
+
+# generated API documentation
+docs/doxygen/html/
+docs/doxygen/latex/
+
+# internal agent/deployment notes (contains board SSH details)
+/AGENTS.md
+
+# models are device/large artifacts; see models/README.md
+models/*.engine
+models/*.onnx
+models/*.plan
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp

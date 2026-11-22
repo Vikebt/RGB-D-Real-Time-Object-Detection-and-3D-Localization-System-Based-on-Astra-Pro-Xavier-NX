@@ -1,0 +1,36 @@
+diff --git a/cv_bridge/CMakeLists.txt b/cv_bridge/CMakeLists.txt
+index 997bef3..c203aad 100644
+--- a/cv_bridge/CMakeLists.txt
++++ b/cv_bridge/CMakeLists.txt
+@@ -13,7 +13,7 @@ if(NOT ANDROID)
+ else()
+ find_package(Boost REQUIRED)
+ endif()
+-find_package(OpenCV 3 REQUIRED
++find_package(OpenCV REQUIRED
+   COMPONENTS
+     opencv_core
+     opencv_imgproc
+diff --git a/cv_bridge/src/CMakeLists.txt b/cv_bridge/src/CMakeLists.txt
+index d5d8ee2..dc00eb2 100644
+--- a/cv_bridge/src/CMakeLists.txt
++++ b/cv_bridge/src/CMakeLists.txt
+@@ -6,7 +6,8 @@ target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
+ 
+ install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+ 
+-if(NOT ANDROID)
++option(CV_BRIDGE_BUILD_PYTHON "Build cv_bridge Boost.Python bindings" OFF)
++if(NOT ANDROID AND CV_BRIDGE_BUILD_PYTHON)
+ # add a Boost Python library
+ find_package(PythonInterp REQUIRED)
+ find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+@@ -32,7 +33,7 @@ if (PYTHON_VERSION_MAJOR VERSION_EQUAL 3)
+   add_definitions(-DPYTHON3)
+ endif()
+ 
+-if (OpenCV_VERSION_MAJOR VERSION_EQUAL 3)
++if (OpenCV_VERSION_MAJOR VERSION_GREATER_EQUAL 3)
+ add_library(${PROJECT_NAME}_boost module.cpp module_opencv3.cpp)
+ else()
+ add_library(${PROJECT_NAME}_boost module.cpp module_opencv2.cpp)
