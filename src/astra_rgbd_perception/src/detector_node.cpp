@@ -13,6 +13,11 @@
  * @copyright MIT License, 2026.
  */
 
+// 中文说明：YOLOv5n TensorRT 检测节点。
+// 流程：rgb8/bgr8 -> letterbox 640x640 -> FP16 engine -> 解码 + 按类 NMS
+//       -> Detection2DArray + 标注图。
+// 直接读原始图像缓冲，不依赖 cv_bridge，避免 OpenCV ABI 冲突。
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -36,6 +41,7 @@ namespace {
  * @struct Detection
  * @brief Internal 2D detection in original color-image coordinates.
  */
+// 中文：内部 2D 检测结果，坐标已映射回原始彩色图像。
 struct Detection {
   int class_id = -1;  ///< COCO class index.
   float score = 0.0f; ///< objectness * class score.
@@ -54,6 +60,7 @@ struct Detection {
  * optional annotated-image publication in one callback to keep the pipeline
  * simple and avoid frame backlog.
  */
+// 中文：检测节点。持有 engine、类别表、订阅/发布；一次回调完成整条检测链路。
 class DetectorNode {
  public:
   /**
@@ -61,6 +68,7 @@ class DetectorNode {
    *
    * Fails fast if the engine path is empty or the engine cannot be loaded.
    */
+  // 中文：加载参数、engine、类别名；engine 失败则快速退出。
   DetectorNode() : nh_(), pnh_("~") {
     pnh_.param<std::string>("engine_path", engine_path_, "");
     pnh_.param<std::string>("color_topic", color_topic_, "/camera/color/image_raw");
@@ -156,6 +164,7 @@ class DetectorNode {
    *
    * Falls back to `class_<id>` names if the file cannot be read.
    */
+  // 中文：读取 COCO 类别名；读不到则用 class_<id> 占位。
   void loadClassNames() {
     std::ifstream file(class_names_file_);
     if (!file) {
@@ -181,6 +190,7 @@ class DetectorNode {
    * @param id COCO class index.
    * @return Class name, or `class_<id>` when unknown.
    */
+  // 中文：类别索引 -> 名称。
   std::string className(int id) const {
     if (id >= 0 && id < static_cast<int>(class_names_.size())) {
       return class_names_[id];
@@ -194,6 +204,7 @@ class DetectorNode {
    * @brief Process one color image through the full detection pipeline.
    * @param msg Incoming color image (`rgb8` or `bgr8`).
    */
+  // 中文：一帧图像的完整检测流程。
   void imageCallback(const sensor_msgs::Image::ConstPtr& msg) {
     if (!engine_.ok()) {
       return;
@@ -293,11 +304,13 @@ class DetectorNode {
    * @param elapsed_ms Preprocessing time in milliseconds.
    * @return true on success.
    */
+  // 中文：letterbox 预处理，输出归一化 NCHW FP32。
   bool preprocess(const cv::Mat& rgb, std::vector<float>* input, float* scale,
                   int* pad_x, int* pad_y, double* elapsed_ms) {
     const ros::WallTime start = ros::WallTime::now();
     const int width = rgb.cols;
     const int height = rgb.rows;
+    // 中文：保持宽高比缩放到 640，空白用 114 填充（letterbox）。
     *scale = std::min(static_cast<float>(input_size_) / width,
                       static_cast<float>(input_size_) / height);
     const int resized_w = std::max(1, static_cast<int>(std::lround(width * *scale)));
@@ -315,6 +328,7 @@ class DetectorNode {
     const int plane = input_size_ * input_size_;
     input->resize(static_cast<size_t>(3 * plane));
     float* dst = input->data();
+    // 中文：转 NCHW 并归一化到 [0,1]；输入保持 RGB 顺序。
     constexpr float kNorm = 1.0f / 255.0f;
     for (int y = 0; y < input_size_; ++y) {
       const cv::Vec3b* row = canvas.ptr<cv::Vec3b>(y);
@@ -337,6 +351,7 @@ class DetectorNode {
    * @param b Second detection.
    * @return IoU in [0, 1].
    */
+  // 中文：计算两个框的 IoU。
   static float iou(const Detection& a, const Detection& b) {
     const float inter_w =
         std::max(0.0f, std::min(a.x2, b.x2) - std::max(a.x1, b.x1));
@@ -359,6 +374,7 @@ class DetectorNode {
    * @param pad_y Letterbox vertical padding.
    * @param detections Output detections in original image coordinates.
    */
+  // 中文：解码 YOLO 输出并按类别做 NMS。
   void postprocess(const std::vector<float>& output, int image_width,
                    int image_height, float scale, int pad_x, int pad_y,
                    std::vector<Detection>* detections) {
@@ -447,6 +463,7 @@ class DetectorNode {
           best_class = c;
         }
       }
+      // 中文：YOLOv5 置信度 = objectness * 最大类别分数。
       const float score = objectness * best_score;
       if (score < conf_threshold_) {
         continue;
@@ -462,6 +479,7 @@ class DetectorNode {
       Detection det;
       det.class_id = best_class;
       det.score = score;
+      // 中文：把 letterbox 坐标反变换回原始图像坐标。
       det.x1 = (cx - 0.5f * w - pad_x) / scale;
       det.y1 = (cy - 0.5f * h - pad_y) / scale;
       det.x2 = (cx + 0.5f * w - pad_x) / scale;
@@ -476,6 +494,7 @@ class DetectorNode {
       candidates.push_back(det);
     }
 
+    // 中文：按置信度排序后做按类别 NMS，抑制同类高 IoU 框。
     std::sort(candidates.begin(), candidates.end(),
               [](const Detection& a, const Detection& b) {
                 return a.score > b.score;
@@ -510,6 +529,7 @@ class DetectorNode {
    * @param postprocess_ms Decode/NMS time.
    * @param detections Detections to publish.
    */
+  // 中文：发布 Detection2DArray。
   void publishDetections(const std_msgs::Header& header, uint32_t image_width,
                          uint32_t image_height, double preprocess_ms,
                          double inference_ms, double postprocess_ms,
@@ -542,6 +562,7 @@ class DetectorNode {
    * @param header Image header copied to the output message.
    * @param detections Detections to draw.
    */
+  // 中文：画框/标签并发布 BGR 标注图。
   void publishAnnotated(const cv::Mat& rgb, const std_msgs::Header& header,
                         const std::vector<Detection>& detections) {
     cv::Mat bgr;

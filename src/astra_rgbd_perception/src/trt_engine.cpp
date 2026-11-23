@@ -7,6 +7,10 @@
  * @copyright MIT License, 2026.
  */
 
+// 中文说明：TensorRT 引擎封装实现。
+// 关键点：读取 binding dtype，FP16 时做 float<->__half 转换；
+// 使用 cudaMemcpyAsync + enqueueV2 + cudaStreamSynchronize 完成一次推理。
+
 #include "astra_rgbd_perception/trt_engine.hpp"
 
 #include <ros/ros.h>
@@ -22,6 +26,7 @@ namespace astra_rgbd_perception {
  * @param severity TensorRT severity level.
  * @param msg Null-terminated message.
  */
+// 中文：TensorRT 日志 -> ROS 日志。
 void TrtLogger::log(Severity severity, const char* msg) noexcept {
   if (severity == Severity::kINTERNAL_ERROR || severity == Severity::kERROR) {
     ROS_ERROR("[TensorRT] %s", msg);
@@ -43,6 +48,7 @@ TrtEngine::~TrtEngine() { release(); }
  * @param dims TensorRT dimensions.
  * @return Product of all dimensions, or 0 if any dimension is unresolved.
  */
+// 中文：计算维度乘积；遇到未解析维度返回 0。
 size_t TrtEngine::volume(const nvinfer1::Dims& dims) {
   size_t result = 1;
   for (int i = 0; i < dims.nbDims; ++i) {
@@ -65,6 +71,8 @@ size_t TrtEngine::volume(const nvinfer1::Dims& dims) {
  * 3. Resolve input/output binding dimensions and dtypes.
  * 4. Allocate device buffers and host staging buffers.
  */
+// 中文：加载 engine 并初始化 CUDA 资源。
+// 步骤：读文件 -> runtime/engine/context -> 解析 binding -> 分配缓冲区。
 bool TrtEngine::load(const std::string& engine_path) {
   release();
 
@@ -200,6 +208,7 @@ bool TrtEngine::load(const std::string& engine_path) {
  * If the input binding is FP16, the input is converted to `__half` first.
  * If the output binding is FP16, the output is converted back to FP32.
  */
+// 中文：同步推理。FP16 binding 时先转 half 再 H2D；输出 D2H 后转回 float。
 bool TrtEngine::infer(const float* input, size_t input_elements,
                       std::vector<float>* output) {
   if (!ok() || input == nullptr || output == nullptr) {
@@ -211,6 +220,7 @@ bool TrtEngine::infer(const float* input, size_t input_elements,
     return false;
   }
 
+  // 中文：若输入 binding 是 FP16，先把主机 float 转成 __half。
   const void* input_data = input;
   if (!host_input_half_.empty()) {
     std::transform(input, input + input_elements_, host_input_half_.begin(),
@@ -227,6 +237,7 @@ bool TrtEngine::infer(const float* input, size_t input_elements,
                               nullptr);
   bindings[input_index_] = device_input_;
   bindings[output_index_] = device_output_;
+  // 中文：提交 TensorRT 推理（TRT 8.x 使用 enqueueV2）。
   if (!context_->enqueueV2(bindings.data(), stream_, nullptr)) {
     ROS_ERROR("TensorRT enqueueV2 failed");
     return false;
@@ -237,6 +248,7 @@ bool TrtEngine::infer(const float* input, size_t input_elements,
               cudaGetErrorString(enqueue_error));
     return false;
   }
+  // 中文：D2H 拷贝；FP16 输出先落到 half 缓冲区，FP32 直接落到 float 缓冲区。
   void* output_data = host_output_half_.empty()
                           ? static_cast<void*>(host_output_.data())
                           : static_cast<void*>(host_output_half_.data());
@@ -252,6 +264,7 @@ bool TrtEngine::infer(const float* input, size_t input_elements,
     return false;
   }
 
+  // 中文：统一返回 FP32；FP16 输出在这里转回 float。
   if (host_output_half_.empty()) {
     output->assign(host_output_.begin(), host_output_.end());
   } else {
@@ -263,6 +276,7 @@ bool TrtEngine::infer(const float* input, size_t input_elements,
 }
 
 /// @brief Destroy CUDA buffers, the stream and all TensorRT objects.
+// 中文：释放 CUDA 缓冲区、流和 TensorRT 对象，并复位状态。
 void TrtEngine::release() {
   if (stream_ != nullptr) {
     cudaStreamDestroy(stream_);

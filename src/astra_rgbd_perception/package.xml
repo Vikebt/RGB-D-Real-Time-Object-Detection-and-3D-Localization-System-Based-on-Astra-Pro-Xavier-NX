@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- 中文：Astra Pro RGB-D 感知包：同步/点云、YOLO 检测、三维定位。 -->
 <package format="2">
   <name>astra_rgbd_perception</name>
   <version>0.1.0</version>

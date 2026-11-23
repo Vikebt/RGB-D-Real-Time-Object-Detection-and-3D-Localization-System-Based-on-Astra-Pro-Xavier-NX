@@ -1,3 +1,4 @@
+# 中文：astra_rgbd_perception 包构建脚本。
 cmake_minimum_required(VERSION 3.5.1)
 project(astra_rgbd_perception)
 
@@ -7,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # catkin_make does not set CMAKE_BUILD_TYPE by default; without optimization the
 # per-pixel preprocessing and FP16<->FP32 conversions are an order of magnitude
 # slower on the Xavier NX.
+# 中文：catkin_make 默认不开优化；必须加 -O3，否则预处理/FP16 转换会慢一个量级。
 add_compile_options(-O3)
 
 find_package(catkin REQUIRED COMPONENTS

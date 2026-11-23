@@ -1,4 +1,6 @@
 # Doxygen configuration for the Astra Pro RGB-D perception project.
+# 中文：Doxygen 配置。代码采用 Doxygen 英文 API 注释 + 中文逻辑注释双语。
+# 生成：doxygen Doxyfile；HTML 在 docs/doxygen/html/index.html。
 #
 # Generate API documentation with:
 #     doxygen Doxyfile

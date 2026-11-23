@@ -1,3 +1,4 @@
+<!-- 中文：一键启动完整系统：相机 + 同步 + 检测 + 三维定位 + RViz。 -->
 <launch>
   <arg name="camera_name" default="camera"/>
   <arg name="start_camera" default="true"/>

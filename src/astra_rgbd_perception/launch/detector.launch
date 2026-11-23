@@ -1,3 +1,4 @@
+<!-- 中文：仅启动 YOLO 检测节点（需相机已运行）。 -->
 <launch>
   <arg name="engine_path"
        default="$(find astra_rgbd_perception)/../../models/yolov5n_fp16.engine"/>

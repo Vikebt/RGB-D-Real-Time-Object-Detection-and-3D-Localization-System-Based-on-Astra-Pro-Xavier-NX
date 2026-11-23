@@ -1,3 +1,4 @@
+# 中文：三维定位参数。roi_ratio 为检测框中心 ROI 比例；深度单位毫米。
 detections_topic: /perception/detections_2d
 depth_topic: /camera/depth/image_raw
 depth_info_topic: /camera/depth/camera_info

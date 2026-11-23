@@ -1,3 +1,4 @@
+# 中文：一帧 2D 检测结果，含图像尺寸与预处理/推理/后处理耗时。
 Header header
 
 uint32 image_width

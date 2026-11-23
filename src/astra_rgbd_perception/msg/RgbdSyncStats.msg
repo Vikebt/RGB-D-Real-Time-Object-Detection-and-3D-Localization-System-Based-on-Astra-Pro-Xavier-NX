@@ -1,4 +1,5 @@
 # Synchronization / point cloud statistics for one RGB-D pair.
+# 中文：一对 RGB-D 的同步/点云统计。
 Header header
 
 # color_stamp - depth_stamp in milliseconds (approximate-time pairing).

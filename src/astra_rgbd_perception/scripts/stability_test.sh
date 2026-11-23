@@ -6,6 +6,8 @@
 ## @param $1 Total duration in seconds (default 600).
 ## @param $2 Sampling interval in seconds (default 30).
 ## @copyright MIT License, 2026.
+# 中文：长时间运行稳定性采样：节点 RSS、频率、有效率、丢帧、USB 日志。
+# 用法：stability_test.sh [总秒数] [采样间隔秒数]
 # Usage: stability_test.sh [duration_seconds] [interval_seconds]
 set -eo pipefail
 

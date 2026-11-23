@@ -463,7 +463,9 @@ python2 ~/astra_rgbd_ws/src/astra_rgbd_perception/scripts/measure_distance.py \
 
 ### Doxygen API 文档
 
-代码已按 Doxygen 规范添加文件、类、方法、参数和成员注释。生成 HTML：
+代码采用 **Doxygen 英文 API 注释 + 中文逻辑注释** 双语：
+Doxygen 负责类/方法/参数的接口文档，普通 `//` / `#` 中文注释解释算法与工程细节。
+生成 HTML：
 
 ```bash
 cd ~/astra_rgbd_ws

@@ -14,6 +14,10 @@
  * @copyright MIT License, 2026.
  */
 
+// 中文说明：RGB-D 同步与点云节点。
+// 深度已对齐到彩色，因此同一像素坐标可直接取深度；用 CameraInfo 内参反投影。
+// 不使用 cv_bridge，直接读原始图像缓冲，避免 JetPack 4.6 的 OpenCV ABI 问题。
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -56,11 +60,13 @@ typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image,
  *
  * If `require_aligned` is true, color and depth frame IDs must match.
  */
+// 中文：RGB-D 同步节点。缓存 CameraInfo，ApproximateTime 配对，生成点云并统计。
 class RgbdSyncNode {
  public:
   /**
    * @brief Read parameters, create ROS interfaces and log configuration.
    */
+  // 中文：读取参数、创建订阅/发布、打印配置。
   RgbdSyncNode() : nh_(), pnh_("~") {
     pnh_.param<std::string>("color_topic", color_topic_, "/camera/color/image_raw");
     pnh_.param<std::string>("depth_topic", depth_topic_, "/camera/depth/image_raw");
@@ -135,6 +141,7 @@ class RgbdSyncNode {
    * @brief Cache the latest color CameraInfo.
    * @param msg New CameraInfo message.
    */
+  // 中文：缓存最新彩色 CameraInfo。
   void colorInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg) {
     color_info_ = msg;
   }
@@ -143,6 +150,7 @@ class RgbdSyncNode {
    * @brief Cache the latest depth CameraInfo.
    * @param msg New CameraInfo message.
    */
+  // 中文：缓存最新深度 CameraInfo（对齐模式下等于彩色 K）。
   void depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg) {
     depth_info_ = msg;
   }
@@ -154,6 +162,7 @@ class RgbdSyncNode {
    * @param have_last Whether @p last_stamp contains a valid timestamp.
    * @param rate Smoothed rate in Hz.
    */
+  // 中文：用指数滑动平均估计某路图像帧率。
   static void updateRate(const ros::Time& stamp, ros::Time* last_stamp,
                          bool* have_last, double* rate) {
     if (*have_last) {
@@ -177,6 +186,7 @@ class RgbdSyncNode {
    * @param source Human-readable source description for logging.
    * @return `true` if valid intrinsics are available.
    */
+  // 中文：优先用深度/彩色 CameraInfo 的内参；无效且允许时才用 fallback。
   bool lookupIntrinsics(double* fx, double* fy, double* cx, double* cy,
                         bool* using_fallback, std::string* source) {
     if (depth_info_ && depth_info_->K.size() >= 9 && depth_info_->K[0] > 1.0 &&
@@ -229,6 +239,7 @@ class RgbdSyncNode {
    * Validates encodings and alignment, resolves intrinsics, builds clouds at
    * the configured rate, publishes PointCloud2 messages and emits statistics.
    */
+  // 中文：处理一对同步的彩色/深度图像，生成点云并发布统计。
   void syncCallback(const sensor_msgs::Image::ConstPtr& color,
                     const sensor_msgs::Image::ConstPtr& depth) {
     updateRate(color->header.stamp, &last_color_stamp_, &have_last_color_,
@@ -289,6 +300,7 @@ class RgbdSyncNode {
 
     const int width = static_cast<int>(color->width);
     const int height = static_cast<int>(color->height);
+    // 中文：16UC1 原始值是毫米，乘 0.001 转米；32FC1 已是米。
     const double depth_scale =
         depth_is_u16 ? depth_scale_to_m_ : 1.0;  // 32FC1 is already in meters
     const std::string cloud_frame = frame_id_override_.empty()
@@ -312,6 +324,7 @@ class RgbdSyncNode {
     size_t valid = 0;
     const ros::WallTime process_start = ros::WallTime::now();
 
+    // 中文：按 step 采样像素，过滤无效/超量程深度，反投影成 XYZ/XYZRGB。
     for (int v = 0; v < height; v += step_) {
       const uint8_t* depth_row = depth->data.data() + v * depth->step;
       const uint8_t* color_row = color->data.data() + v * color->step;
@@ -340,6 +353,7 @@ class RgbdSyncNode {
         }
         ++valid;
 
+        // 中文：针孔模型反投影 X=(u-cx)*Z/fx, Y=(v-cy)*Z/fy。
         const double x = (u - cx) * z / fx;
         const double y = (v - cy) * z / fy;
         const uint8_t* px = color_row + u * 3;
@@ -398,6 +412,7 @@ class RgbdSyncNode {
     last_process_ms_ = process_ms;
     last_cloud_time_ = now;
 
+    // 中文：每秒发布一次同步/点云统计。
     if ((now - last_stats_time_).toSec() >= 1.0) {
       astra_rgbd_perception::RgbdSyncStats stats;
       stats.header.stamp = color->header.stamp;

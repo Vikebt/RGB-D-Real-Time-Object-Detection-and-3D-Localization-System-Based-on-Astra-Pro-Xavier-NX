@@ -16,6 +16,9 @@
 ##
 ## The script does not upgrade JetPack/CUDA/TensorRT and does not touch ~/hs/*.
 ## @copyright MIT License, 2026.
+# 中文：一键部署脚本。克隆第三方源码、打补丁、编译 libuvc、装 udev、catkin_make。
+# 可选 BUILD_ENGINE=1 下载 ONNX 并构建 TensorRT engine。
+# 不升级 JetPack/CUDA/TensorRT，不改动 ~/hs/* 已有工作空间。
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

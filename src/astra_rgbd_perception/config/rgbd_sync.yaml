@@ -1,4 +1,5 @@
 # RGB-D synchronization / point cloud parameters.
+# 中文：RGB-D 同步与点云参数。深度须对齐到彩色；16UC1 单位为毫米。
 
 color_topic: /camera/color/image_raw
 depth_topic: /camera/depth/image_raw

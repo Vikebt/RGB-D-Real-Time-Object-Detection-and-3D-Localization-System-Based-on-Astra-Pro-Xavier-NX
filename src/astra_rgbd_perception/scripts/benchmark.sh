@@ -5,6 +5,8 @@
 ## and detection timings, CPU/GPU/memory and tegrastats.
 ## @param $1 Sampling duration per topic in seconds (default 10).
 ## @copyright MIT License, 2026.
+# 中文：采样 topic 频率、同步/检测耗时、CPU/GPU/内存和 tegrastats。
+# 用法：benchmark.sh [秒数]
 # Usage: benchmark.sh [seconds]
 set -eo pipefail
 

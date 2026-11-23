@@ -16,6 +16,10 @@
  * @copyright MIT License, 2026.
  */
 
+// 中文说明：TensorRT 8.x 引擎封装，供 YOLOv5n 检测器使用。
+// 负责 engine 反序列化、FP32/FP16 binding 适配、CUDA 缓冲区分配和同步推理。
+// 注意：engine 与设备/TensorRT 版本绑定，换板后必须重新构建。
+
 #pragma once
 
 #include <cuda_fp16.h>
@@ -35,6 +39,7 @@ namespace astra_rgbd_perception {
  * @class TrtLogger
  * @brief TensorRT logger that forwards messages to ROS logging.
  */
+// 中文：把 TensorRT 日志转发到 ROS 日志系统。
 class TrtLogger : public nvinfer1::ILogger {
  public:
   /**
@@ -62,6 +67,9 @@ class TrtLogger : public nvinfer1::ILogger {
  * returned as host FP32; if the output binding is FP16, the wrapper converts it
  * after the D2H copy.
  */
+// 中文：单输入/单输出 TensorRT 引擎封装。
+// 输入统一用主机 FP32；若 binding 是 FP16，内部自动转 __half。
+// 输出统一返回主机 FP32；若 binding 是 FP16，内部自动转回 float。
 class TrtEngine {
  public:
   /// @brief Construct an empty engine wrapper.
@@ -81,6 +89,7 @@ class TrtEngine {
    * @note The engine must have exactly one input and one output binding with
    *       linear FP32/FP16 data.
    */
+  // 中文：加载序列化 engine，解析 binding 维度/类型，分配 CUDA 缓冲区。
   bool load(const std::string& engine_path);
 
   /**
@@ -92,6 +101,7 @@ class TrtEngine {
    * @return `true` on success; `false` on shape mismatch or CUDA/TensorRT
    *         failure.
    */
+  // 中文：执行一次同步推理。input 为 NCHW FP32；output 会被 resize 到输出大小。
   bool infer(const float* input, size_t input_elements,
              std::vector<float>* output);
 
@@ -105,6 +115,7 @@ class TrtEngine {
   const std::vector<int>& output_dims() const { return output_dims_; }
 
  private:
+  // 中文：内部工具函数与资源释放。
   /**
    * @brief Compute the element count of a TensorRT dimensions object.
    * @param dims TensorRT dimensions.
@@ -115,6 +126,7 @@ class TrtEngine {
   /// @brief Release all TensorRT and CUDA resources and reset state.
   void release();
 
+  // 中文：TensorRT 对象、binding 信息、设备/主机缓冲区与 CUDA 流。
   TrtLogger logger_;                         ///< TensorRT logger instance.
   nvinfer1::IRuntime* runtime_ = nullptr;    ///< TensorRT runtime.
   nvinfer1::ICudaEngine* engine_ = nullptr;  ///< Deserialized engine.

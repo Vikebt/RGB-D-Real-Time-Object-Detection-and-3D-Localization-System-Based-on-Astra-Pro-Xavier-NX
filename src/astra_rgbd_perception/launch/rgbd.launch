@@ -1,3 +1,4 @@
+<!-- 中文：相机 + RGB-D 同步/点云；可选 RViz。 -->
 <launch>
   <arg name="camera_name" default="camera"/>
   <arg name="start_camera" default="true"/>

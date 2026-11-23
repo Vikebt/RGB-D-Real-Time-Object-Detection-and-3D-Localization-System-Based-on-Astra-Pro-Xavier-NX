@@ -19,6 +19,11 @@
  * @copyright MIT License, 2026.
  */
 
+// 中文说明：三维定位节点。
+// 对每个检测框取中心 ROI，过滤无效深度，取中位数作为 Z，
+// 用有效像素平均 (u,v) 和 CameraInfo 内参反投影得到 X/Y。
+// 有效深度不足时 depth_valid=false，不输出虚假坐标。
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -54,11 +59,13 @@ typedef message_filters::sync_policies::ApproximateTime<
  * CameraInfo, extracts the central ROI of each box, computes a median depth
  * and publishes `Object3DArray` plus `MarkerArray` for RViz.
  */
+// 中文：把 2D 检测转成 3D 位置，并发布 Object3DArray 和 RViz Marker。
 class DepthLocalizerNode {
  public:
   /**
    * @brief Read parameters and create ROS interfaces.
    */
+  // 中文：读取参数并创建 ROS 接口。
   DepthLocalizerNode() : nh_(), pnh_("~") {
     pnh_.param<std::string>("detections_topic", detections_topic_,
                             "/perception/detections_2d");
@@ -133,6 +140,7 @@ class DepthLocalizerNode {
    * @brief Cache the latest depth CameraInfo.
    * @param msg New CameraInfo message.
    */
+  // 中文：缓存深度 CameraInfo。
   void depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg) {
     depth_info_ = msg;
   }
@@ -141,6 +149,7 @@ class DepthLocalizerNode {
    * @brief Cache the latest color CameraInfo.
    * @param msg New CameraInfo message.
    */
+  // 中文：缓存彩色 CameraInfo。
   void colorInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg) {
     color_info_ = msg;
   }
@@ -154,6 +163,7 @@ class DepthLocalizerNode {
    * @param using_fallback Set to true when fallback values are used.
    * @return true if valid intrinsics are available.
    */
+  // 中文：解析内参；优先深度/彩色 CameraInfo，无效且允许时用 fallback。
   bool lookupIntrinsics(double* fx, double* fy, double* cx, double* cy,
                         bool* using_fallback) {
     if (depth_info_ && depth_info_->K.size() >= 9 && depth_info_->K[0] > 1.0 &&
@@ -204,6 +214,7 @@ class DepthLocalizerNode {
    * marker messages. Invalid-depth objects are still reported with
    * `depth_valid=false`.
    */
+  // 中文：处理一对同步的检测/深度，计算 3D 并发布。
   void syncCallback(
       const astra_rgbd_perception::Detection2DArray::ConstPtr& detections,
       const sensor_msgs::Image::ConstPtr& depth) {
@@ -272,6 +283,7 @@ class DepthLocalizerNode {
 
       const int box_w = x1 - x0 + 1;
       const int box_h = y1 - y0 + 1;
+      // 中文：取检测框中心 roi_ratio 比例的 ROI，避免边缘/背景深度干扰。
       const int roi_w = std::max(1, static_cast<int>(box_w * roi_ratio_));
       const int roi_h = std::max(1, static_cast<int>(box_h * roi_ratio_));
       const int center_x = (x0 + x1) / 2;
@@ -325,6 +337,7 @@ class DepthLocalizerNode {
         continue;
       }
 
+      // 中文：用中位数而不是单像素/均值，抗空洞和飞点。
       auto median_it = depths_m.begin() + valid_pixels / 2;
       std::nth_element(depths_m.begin(), median_it, depths_m.end());
       const double z = *median_it;
@@ -332,6 +345,7 @@ class DepthLocalizerNode {
       const double v = sum_v / valid_pixels;
 
       object.depth_m = static_cast<float>(z);
+      // 中文：针孔反投影，得到相机光学坐标系下的 X/Y/Z（米）。
       object.position.x = (u - cx) * z / fx;
       object.position.y = (v - cy) * z / fy;
       object.position.z = z;
@@ -344,6 +358,7 @@ class DepthLocalizerNode {
       const float b =
           static_cast<float>((det.class_id * 131) % 200 + 55) / 255.0f;
 
+      // 中文：RViz 标记：球体表示位置，文本显示类别和距离。
       visualization_msgs::Marker sphere;
       sphere.header = object.header;
       sphere.ns = "object_positions";

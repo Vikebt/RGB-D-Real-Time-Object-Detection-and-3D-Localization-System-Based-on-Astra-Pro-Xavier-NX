@@ -4,6 +4,8 @@
 ## @details The bag is written to `$WS/bags` (or `$BAG_DIR`) using LZ4.
 ## @param $1 Optional duration in seconds; 0 records until Ctrl-C.
 ## @copyright MIT License, 2026.
+# 中文：录制 RGB/深度/CameraInfo/TF 到 LZ4 压缩 rosbag。
+# 用法：record_rgbd.sh [秒数]；不传参则一直录到 Ctrl-C。
 # Usage: record_rgbd.sh [duration_seconds]
 set -eo pipefail
 

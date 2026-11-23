@@ -1,3 +1,5 @@
+# 中文：RViz 配置。固定坐标系为 camera_color_optical_frame；
+# 显示彩色/深度/标注图、Objects3D Marker、XYZRGB/XYZ 点云。
 Panels:
   - Class: rviz/Displays
     Name: Displays

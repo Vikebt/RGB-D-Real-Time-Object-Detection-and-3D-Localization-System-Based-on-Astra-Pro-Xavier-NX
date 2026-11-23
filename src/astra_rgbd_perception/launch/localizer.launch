@@ -1,3 +1,4 @@
+<!-- 中文：仅启动三维定位节点（需相机 + 检测已运行）。 -->
 <launch>
   <node pkg="astra_rgbd_perception" type="depth_localizer_node"
         name="depth_localizer" output="screen">

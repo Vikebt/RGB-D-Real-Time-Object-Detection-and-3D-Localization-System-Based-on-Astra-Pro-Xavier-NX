@@ -25,6 +25,11 @@ views with pose diversity, runs cv2.calibrateCamera, and writes a
 camera_info_manager-compatible YAML file.
 """
 
+# 中文说明：无头 RGB 棋盘格标定脚本（ROS Melodic / Python 2.7）。
+# 订阅彩色图像，自动采集姿态多样的棋盘格视图，调用 cv2.calibrateCamera，
+# 输出 camera_info_manager 兼容的 YAML。保存的 view_*.png 是画了角点的图，
+# 仅供人工检查，不能用于自动重算 RMS。
+
 import argparse
 import os
 import sys
@@ -38,6 +43,7 @@ import yaml
 from sensor_msgs.msg import Image
 
 
+# 中文：棋盘格采集与标定器。
 class RgbCalibrator(object):
     """@brief Capture chessboard views and calibrate the RGB camera.
 
@@ -46,6 +52,7 @@ class RgbCalibrator(object):
     `cv2.calibrateCamera` after enough views are collected.
     """
 
+    # 中文：初始化标定器并订阅图像话题。
     def __init__(self, args):
         """@brief Initialize the calibrator and subscribe to the image topic.
 
@@ -73,6 +80,7 @@ class RgbCalibrator(object):
         sys.stdout.flush()
 
     @staticmethod
+    # 中文：ROS 图像 -> 灰度图。
     def image_to_gray(msg):
         """@brief Convert a ROS image message to an 8-bit grayscale array.
 
@@ -88,6 +96,7 @@ class RgbCalibrator(object):
             return np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width)
         return None
 
+    # 中文：用名义内参估计棋盘姿态，仅用于视角多样性筛选。
     def board_signature(self, corners):
         """@brief Approximate the board pose for pose-diversity filtering.
 
@@ -106,6 +115,7 @@ class RgbCalibrator(object):
         tilt = float(np.degrees(np.arccos(min(1.0, max(-1.0, abs(normal[2]))))))
         return (float(tvec[0]), float(tvec[1]), tilt)
 
+    # 中文：判断新视角是否与已采集视角足够不同。
     def is_diverse(self, sig):
         """@brief Check whether a new board pose differs from accepted views.
 
@@ -120,6 +130,7 @@ class RgbCalibrator(object):
                 return False
         return True
 
+    # 中文：处理一帧图像，检测到棋盘且姿态多样时保存视图。
     def callback(self, msg):
         """@brief Process one color image and capture a view when valid.
 
@@ -163,6 +174,7 @@ class RgbCalibrator(object):
             self.done = True
             rospy.signal_shutdown("enough views")
 
+    # 中文：执行标定并写出 YAML（主文件 + 归档）。
     def calibrate(self):
         """@brief Run `cv2.calibrateCamera` and write the YAML files.
 
@@ -228,6 +240,7 @@ class RgbCalibrator(object):
         return 0
 
 
+# 中文：解析参数并运行标定流程。
 def main():
     """@brief Parse arguments and run the calibration workflow.
 

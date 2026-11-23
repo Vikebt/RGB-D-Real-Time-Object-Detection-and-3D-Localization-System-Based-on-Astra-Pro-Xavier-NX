@@ -19,6 +19,10 @@ Put the object at a measured distance from the camera, keep it still, run the
 script, and compare "median_z" with the tape measure.
 """
 
+# 中文说明：0.8–2.0m 距离实测工具。
+# 订阅 /perception/objects_3d，选取指定类别、最靠近画面中心的有效目标，
+# 统计 median_z / mean_x / mean_y，与卷尺实测距离对比。
+
 import argparse
 import sys
 
@@ -28,9 +32,11 @@ import rospy
 from astra_rgbd_perception.msg import Object3DArray
 
 
+# 中文：采集某一类别的有效 3D 检测并汇总。
 class Collector(object):
     """@brief Collect valid 3D detections for one class and summarize them."""
 
+    # 中文：初始化采集器。
     def __init__(self, class_name, min_confidence):
         """@brief Initialize the collector.
 
@@ -42,6 +48,7 @@ class Collector(object):
         self.samples = []
         self.class_counts = {}
 
+    # 中文：处理一帧 Object3DArray，记录最靠近中心的有效目标。
     def callback(self, msg):
         """@brief Process one `Object3DArray` message.
 
@@ -72,6 +79,7 @@ class Collector(object):
             })
 
 
+# 中文：解析参数、采集样本并输出测量结果。
 def main():
     """@brief Parse arguments, collect samples and print the measurement.
 
